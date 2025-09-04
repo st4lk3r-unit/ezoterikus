@@ -782,7 +782,6 @@ export function renderRight(){
       const f = ev.target.files?.[0]; if (!f) return;
       try {
         const card = await ezo.readFriendCardFromFile(f);
-
         State.pending.friends = (State.pending.friends||[]).filter(c=>c.id!==card.id);
 
 const fr = {
