@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Ezoterikus Ultra-Light</title>
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="statusbar" id="statusBar">
+  <div class="status-seg click" id="relaySeg" title="Relays status">
+    <span class="dot" id="statusDot"></span>
+    <span>Relays: <b id="statusRelays">0</b></span>
+  </div>
+  <div class="status-sep">|</div>
+  <div class="status-seg" id="autopollSeg">
+    <span>Auto-poll: <b id="statusAutopoll">off</b></span>
+  </div>
+  <div class="status-sep">|</div>
+  <div class="status-seg" id="lastPollSeg">
+    <span>Last poll: <b id="statusLastPoll">—</b></span>
+  </div>
+  <div class="status-sep">|</div>
+  <div class="status-seg" id="profileSeg">
+    <span>Profile: <b id="statusProfile">none</b></span>
+  </div>
+</div>
+
+    <div class="left" id="leftPanel">
+      <div class="handle" id="leftHandle" title="Collapse">‹</div>
+      <div class="panel-content">
+        <div id="meItem" class="chat-item" style="font-weight:600;"></div>
+        <div class="chat-item" id="createGroupBtn">＋ Create group chat</div>
+        <div class="chat-section-title">Chats</div>
+        <div id="chatsMount"></div>
+        <div class="chat-section-title">Groups</div>
+        <div id="groupsMount"></div>
+        <div class="chat-section-title">Unknown</div>
+        <div id="unknownMount"></div>
+      </div>
+    </div>
+
+    <div class="center">
+      <div class="chat" id="chatView"></div>
+      <div class="composer" id="composerBar">
+        <input id="composerInput" class="input" placeholder="Type a message... (Ctrl+Enter to send)">
+        <button id="sendBtn" class="button">Send</button>
+      </div>
+    </div>
+
+    <div class="right" id="rightPanel">
+      <div class="handle" id="rightHandle" title="Collapse">›</div>
+      <div class="panel-content" id="rightContent"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="paywallProfile">
+    <div class="modal">
+      <h2>Profile Manager</h2>
+      <div class="row" style="flex-wrap:wrap;">
+        <div style="flex:1; min-width:260px;">
+          <label class="chat-section-title">Existing profiles</label>
+          <select id="pmSelect" class="select"></select>
+          <label>Password</label>
+          <input id="pmPass" type="password" class="input">
+          <div class="row" style="margin-top:8px;">
+            <button id="pmOpen" class="button primary" style="flex:1;">Open</button>
+            <button id="pmDownload" class="button" style="flex:1;">Download</button>
+            <button id="pmDelete" class="button" style="flex:1;">Delete</button>
+          </div>
+        </div>
+        <div style="flex:1; min-width:260px;">
+          <label class="chat-section-title">Create new profile</label>
+          <input id="pmNewName" class="input" placeholder="alice">
+          <label>Bio</label>
+          <input id="pmNewBio" class="input" placeholder="say hi">
+          <label>Password</label>
+          <input id="pmNewPass" class="input" type="password">
+          <label>Confirm password</label>
+          <input id="pmNewPass2" class="input" type="password">
+          <button id="pmCreate" class="button primary" style="margin-top:8px; width:100%;">Create</button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px; align-items:center;">
+        <label class="file-btn">
+          <input type="file" id="pmImport" accept=".ezo">
+          <span class="button">Import .ezo archive</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="modal"><div class="modal" id="modalBox"></div></div>
+
+  <div id="friendPopover" class="popover" style="display:none;"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/argon2-browser/dist/argon2-bundled.min.js"></script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

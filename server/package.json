@@ -1,0 +1,11 @@
+{
+  "name": "ezolite-relay",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "ws": "^8.17.0"
+  },
+  "scripts": {
+    "start": "node relay.mjs"
+  }
+}
