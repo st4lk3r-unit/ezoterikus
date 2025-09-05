@@ -1,3 +1,5 @@
+import { safeScriptUrl } from "./sanitize.js";
+
 let cachedPromise = null;
 
 const CONFIG = {
@@ -61,7 +63,7 @@ async function loadDOMPurify() {
 
     try {
       if (CONFIG.LOG) console.log('Trying local UMD:', CONFIG.LOCAL.umdAbsolute);
-      await injectScript(CONFIG.LOCAL.umdAbsolute);
+      await injectScript(CONFIG.LOCAL.umdAbsolute, { waitFor: () => !!window.DOMPurify });
       if (window.DOMPurify?.sanitize) {
         if (CONFIG.LOG) console.log('✔︎ Loaded local UMD');
         if (CONFIG.LOG) console.groupEnd();
@@ -79,6 +81,7 @@ async function loadDOMPurify() {
       integrity: CONFIG.CDN_SRI,
       crossOrigin: 'anonymous',
       referrerPolicy: 'no-referrer',
+      waitFor: () => !!window.DOMPurify,
     });
     if (!window.DOMPurify?.sanitize) throw new Error('window.DOMPurify missing after CDN load');
     if (CONFIG.LOG) console.log('✔︎ Loaded from CDN with SRI');
@@ -92,26 +95,98 @@ async function loadDOMPurify() {
 }
 
 async function assertJs(url) {
-  const r = await fetch(url, { method: 'GET' });
+  const u = safeScriptUrl(url);
+  const r = await fetch(u, { method: 'GET' });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   const ct = (r.headers.get('content-type') || '').toLowerCase();
-  if (!/javascript|ecmascript/.test(ct)) {
+  if (!/(javascript|ecmascript|text\/javascript|application\/x-javascript)/.test(ct)) {
     if (/text\/html/.test(ct)) throw new Error('Content-Type text/html (SPA fallback?)');
     throw new Error(`Unexpected Content-Type "${ct}"`);
   }
 }
 
-function injectScript(src, opts = {}) {
-  return new Promise((resolve, reject) => {
-    if (!src || typeof src !== 'string') return reject(new Error(`Bad src: ${src}`));
-    const s = document.createElement('script');
-    s.src = src;
-    if (opts.integrity) s.integrity = opts.integrity;
-    if (opts.crossOrigin) s.crossOrigin = opts.crossOrigin;
-    if (opts.referrerPolicy) s.referrerPolicy = opts.referrerPolicy;
-    s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error(`Script load failed: ${src}`));
-    document.head.appendChild(s);
+const _inflight = new Map();
+
+function currentNonce() {
+  const s = document.querySelector('script[nonce]');
+  return s ? s.nonce || s.getAttribute('nonce') : null;
+}
+
+export function injectScript(src, opts = {}) {
+  let normalized;
+  try { normalized = safeScriptUrl(src); }
+  catch (e) { return Promise.reject(e); }
+
+  if (_inflight.has(normalized)) return _inflight.get(normalized);
+
+  const p = new Promise((resolve, reject) => {
+    try {
+      const existing = Array.from(document.scripts).find(s => s.src === normalized);
+      if (existing && (existing.dataset.loaded === '1')) return resolve(existing);
+
+      const s = document.createElement('script');
+      s.dataset.loading = '1';
+
+      s.src = normalized;
+
+      if (opts.type) s.type = opts.type;
+      if (opts.integrity) {
+        s.integrity = opts.integrity;
+        s.crossOrigin = opts.crossOrigin || 'anonymous';
+      } else if (opts.crossOrigin) {
+        s.crossOrigin = opts.crossOrigin;
+      }
+      if (opts.referrerPolicy) s.referrerPolicy = opts.referrerPolicy;
+      s.nonce = opts.nonce || currentNonce() || '';
+
+      s.async = opts.async !== false;
+
+      const cleanup = () => {
+        s.removeEventListener('load', onLoad);
+        s.removeEventListener('error', onError);
+        if (timeoutId) clearTimeout(timeoutId);
+      };
+
+      const onLoad = async () => {
+        cleanup();
+        s.dataset.loaded = '1';
+        delete s.dataset.loading;
+        try {
+          if (typeof opts.waitFor === 'function') {
+            const start = Date.now();
+            while (!opts.waitFor()) {
+              if (Date.now() - start > 3000) throw new Error('waitFor timed out');
+              await new Promise(r => setTimeout(r, 30));
+            }
+          }
+          resolve(s);
+        } catch (err) {
+          s.remove();
+          reject(err);
+        }
+      };
+
+      const onError = () => {
+        cleanup();
+        reject(new Error(`Script load failed: ${normalized}`));
+      };
+
+      s.addEventListener('load', onLoad, { once: true });
+      s.addEventListener('error', onError, { once: true });
+
+      const timeoutMs = opts.timeoutMs ?? 15000;
+      const timeoutId = timeoutMs > 0 ? setTimeout(() => {
+        s.remove();
+        reject(new Error(`Script load timeout after ${timeoutMs}ms: ${normalized}`));
+      }, timeoutMs) : null;
+
+      document.head.appendChild(s);
+    } catch (e) {
+      reject(e);
+    }
   });
+
+  _inflight.set(normalized, p);
+  p.finally(() => { if (_inflight.get(normalized) === p) _inflight.delete(normalized); });
+  return p;
 }

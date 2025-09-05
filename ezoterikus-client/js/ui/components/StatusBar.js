@@ -1,6 +1,7 @@
 import * as relay from '../../relay.js';
 import { showTooltip, hideTooltip } from './Tooltip.js';
 import { esc } from '../sanitize/sanitize.js';
+import { EZO_VERSION } from "../../ezo.js";
 
 function fmtState(ws){
   if (!ws) return '—';
@@ -15,6 +16,23 @@ function fmtState(ws){
 function stateColor(ws){ return (ws?.readyState===1) ? '#16a34a' : '#b91c1c'; }
 
 export function enhanceStatusBar(){
+  // --- ensure version segment exists ---
+  const bar = document.getElementById('statusBar');
+  if (bar && !document.getElementById('versionSeg')) {
+    const seg = document.createElement('div');
+    seg.id = 'versionSeg';
+    seg.className = 'status-seg push-right';
+    const span = document.createElement('span');
+    span.id = 'statusVersion';
+    seg.appendChild(span);
+    bar.appendChild(seg);
+  }
+
+  // --- set version text (fallback to "unknown") ---
+  const verEl = document.getElementById('statusVersion');
+  if (verEl) verEl.textContent = EZO_VERSION || "unknown";
+
+  // --- relay status click targets ---
   const dot = document.getElementById('statusDot');
   const num = document.getElementById('statusRelays');
   const labelSpan = num?.parentElement; // "Relays: <b id=statusRelays>"
@@ -35,10 +53,18 @@ export function enhanceStatusBar(){
         </div>
       </div>`);
     }
-    const html = `<div class="title">Relays</div>${rows.length?rows.join(''):'<div class="muted">No relays configured.</div>'}`;
+    const html = `<div class="title">Relays</div>${
+      rows.length ? rows.join('') : '<div class="muted">No relays configured.</div>'
+    }`;
     showTooltip({ x: ev.clientX, y: ev.clientY, html });
+
     // click outside to close
-    const onDoc = (e)=>{ if (!document.querySelector('.popover')?.contains(e.target)) { hideTooltip(); document.removeEventListener('click', onDoc, true); } };
+    const onDoc = (e)=>{
+      if (!document.querySelector('.popover')?.contains(e.target)) {
+        hideTooltip();
+        document.removeEventListener('click', onDoc, true);
+      }
+    };
     setTimeout(()=>document.addEventListener('click', onDoc, true), 0);
   };
 

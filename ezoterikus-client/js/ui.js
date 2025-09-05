@@ -15,7 +15,7 @@ async function normalizeAvatar(dataUrl, size=96){
     if (!dataUrl) return null;
     const img = new Image();
     const loaded = new Promise((res, rej)=>{ img.onload=()=>res(); img.onerror=rej; });
-    img.src = dataUrl;
+    img.src = safeUrl(dataUrl);
     await loaded;
 
     const s = size|0;
@@ -879,7 +879,7 @@ const fr = {
     const info = document.createElement("div");
     info.innerHTML = `
       <div class="chat-section-title">Unknown sender</div>
-      <div class="msg">ID seen in message: <b>${esc(senderId)}</b></div>
+      <div class="msg-full">ID seen in message: <b>${esc(senderId)}</b></div>
       <div class="muted">To add them as a friend, import their card (.ezocard) from your You page.</div>
       <div class="row" style="margin-top:8px;">
         <button id="sendMyCard" class="button">Send my card</button>
@@ -929,9 +929,9 @@ const fr = {
   const pendingHandshake = (!fr.mutual || !fr.ack);
   info.innerHTML = `
     <div class="chat-section-title">Talking to</div>
-    <div class="msg"><b>${esc(fr.name)}</b> ${pendingHandshake?'<span class="pill">handshake pending</span>':''}</div>
-    <div class="msg">Inbox: <code>${esc(fr.inbox)}</code></div>
-    <div class="msg">Public key: <code style="word-break:break-all;">${esc(fr.pubB64)}</code></div>
+    <div class="msg-full"><b>${esc(fr.name)}</b> ${pendingHandshake?'<span class="pill">handshake pending</span>':''}</div>
+    <div class="msg-full">Inbox: <code>${esc(fr.inbox)}</code></div>
+    <div class="msg-full">Public key: <code style="word-break:break-all;">${esc(fr.pubB64)}</code></div>
     <div class="row" style="gap:8px;">
       <button id="deleteFriendBtn" class="button" style="flex:1;">Delete friend</button>
       <button id="inviteToGroupBtn" class="button" style="flex:1;">Invite to group</button>
