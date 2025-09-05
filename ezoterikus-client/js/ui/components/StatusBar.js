@@ -1,6 +1,6 @@
 import * as relay from '../../relay.js';
 import { showTooltip, hideTooltip } from './Tooltip.js';
-import { esc } from '../sanitize.js';
+import { esc } from '../sanitize/sanitize.js';
 
 function fmtState(ws){
   if (!ws) return '—';
