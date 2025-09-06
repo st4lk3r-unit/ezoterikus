@@ -1,4 +1,4 @@
-export const EZO_VERSION = "Update_publish-page.yml";
+export const EZO_VERSION = "1337 H4X0R";
 
 //////////////////////
 // Encoding helpers //
