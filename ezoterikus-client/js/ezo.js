@@ -1,4 +1,4 @@
-export const EZO_VERSION = "1337 H4X0R";
+export const EZO_VERSION = "ezoterikus-v3.0.3-2";
 
 //////////////////////
 // Encoding helpers //
