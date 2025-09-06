@@ -196,3 +196,24 @@ input[type="checkbox"] { accent-color: #64748b; }
 .statusbar .push-right { margin-left: auto; }
 .statusbar .status-sep + .push-right { display: none; }
 .statusbar .push-right ~ .status-sep { display: none; }
+
+
+/* === PROD: disabled elements universal class === */
+.ezo-disabled {
+  opacity: 0.5;
+  filter: grayscale(100%);
+  cursor: not-allowed !important;
+  user-select: none;
+}
+.ezo-disabled, .ezo-disabled * {
+  pointer-events: auto;
+}
+.ezo-disabled:focus {
+  outline: none !important;
+}
+input.ezo-disabled, select.ezo-disabled, textarea.ezo-disabled {
+  background: #222;
+  color: #999;
+}
+label.ezo-disabled { cursor: not-allowed !important; }
+

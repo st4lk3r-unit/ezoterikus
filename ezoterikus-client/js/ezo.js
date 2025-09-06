@@ -1,5 +1,4 @@
-// ezo-client/js/ezo.js
-export const EZO_VERSION = "ezo-v3.0.1";
+export const EZO_VERSION = "ezo-v3.0.2";
 
 //////////////////////
 // Encoding helpers //
