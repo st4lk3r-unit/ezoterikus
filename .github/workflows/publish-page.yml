@@ -19,7 +19,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      SITE_DIR: folder
+      SITE_DIR: ezoterikus-client
     steps:
       - name: Checkout
         uses: actions/checkout@v4
