@@ -29,12 +29,12 @@ jobs:
 
       - name: Patch EZO_VERSION in source file
         run: |
-          sed -i "s/^export const EZO_VERSION = .*/export const EZO_VERSION = \"${{ steps.version.outputs.title }}\";/" src/ezo.js
+          sed -i "s/^export const EZO_VERSION = .*/export const EZO_VERSION = \"${{ steps.version.outputs.title }}\";/" ezoterikus-client/js/ezo.js
 
       - name: Commit and push version bump
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add src/ezo.js
+          git add ezoterikus-client/js/ezo.js
           git commit -m "chore: bump EZO_VERSION to ${{ steps.version.outputs.title }}"
           git push
