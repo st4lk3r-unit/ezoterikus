@@ -3,9 +3,10 @@ name: Deploy Pages from ./folder
 run-name: Deploy Pages — ${{ github.event.head_commit.message }}
 
 on:
-  push:
-    branches: [ main ]
-
+  workflow_run:
+    workflows: ["Bump version"]
+    types: [completed]
+    
 permissions:
   contents: read
   pages: write
