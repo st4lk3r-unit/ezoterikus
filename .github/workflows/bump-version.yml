@@ -1,0 +1,40 @@
+name: Bump version
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version string
+        id: version
+        run: |
+          TITLE="${{ github.event.pull_request.title || github.event.head_commit.message }}"
+          TITLE=$(echo "$TITLE" | head -n1 | sed -E 's/[^A-Za-z0-9._-]+/_/g')
+
+          if [ -z "$TITLE" ]; then
+            TITLE="sha-$(git rev-parse --short HEAD)"
+          fi
+
+          echo "Resolved EZO_VERSION=$TITLE"
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+
+      - name: Patch EZO_VERSION in source file
+        run: |
+          sed -i "s/^export const EZO_VERSION = .*/export const EZO_VERSION = \"${{ steps.version.outputs.title }}\";/" src/ezo.js
+
+      - name: Commit and push version bump
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add src/ezo.js
+          git commit -m "chore: bump EZO_VERSION to ${{ steps.version.outputs.title }}"
+          git push
