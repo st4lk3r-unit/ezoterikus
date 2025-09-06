@@ -5,6 +5,9 @@ import { enhanceUI } from './ui/index.js';
 import * as relay from './relay.js';
 import { State, setProfile, setSettings, loadChatsOnOpen } from './state.js';
 import { x25519 } from "https://esm.sh/@noble/curves@1.6.0/ed25519";
+import { initSanitizer } from './ui/sanitize/sanitize.js';
+await initSanitizer();
+
 
 const $=(id)=>document.getElementById(id);
 
