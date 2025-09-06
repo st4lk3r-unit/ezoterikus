@@ -1,4 +1,4 @@
-export const EZO_VERSION = "ezoterikus-v3.0.3";
+export const EZO_VERSION = "Update_publish-page.yml";
 
 //////////////////////
 // Encoding helpers //
