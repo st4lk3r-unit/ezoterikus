@@ -153,23 +153,132 @@ function writeIndex(idx){ localStorage.setItem(LS_INDEX, JSON.stringify(idx)); }
 function profKey(name){ return `ezo:profile:${name}`; }
 
 
-/* ---------- Argon2id key derivation ---------- */
-async function argon2idKey(passU8, saltU8, { t=3, m=65536, p=1 } = {}){
-  const a = (typeof window !== 'undefined') ? window.argon2 : (globalThis.argon2);
-  if (!a || !a.hash || !a.ArgonType) throw new Error("argon2-missing");
+/* ---------- Hardened Argon2id key derivation with autotune ---------- */
+const A2_DEFAULTS = {
+  targetMsDesktop: 450, 
+  targetMsMobile: 700,
+
+  minMemKiB: 64 * 1024,
+  maxMemKiB: 512 * 1024,
+
+  minT: 3,
+  maxT: 6,
+
+  p: 1,
+
+  version: 0x13,
+};
+
+function isLikelyMobile() {
+  const dm = (navigator.deviceMemory || 4);
+  const ua = navigator.userAgent || "";
+  return dm <= 4 || /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+}
+
+let _argon2Tuned = null;
+
+async function tuneArgon2(passU8, saltU8) {
+  const a = (typeof window !== 'undefined') ? window.argon2 : globalThis.argon2;
+  if (!a?.hash || !a?.ArgonType) throw new Error("argon2-missing");
+
+  const mobile = isLikelyMobile();
+  const targetMs = mobile ? A2_DEFAULTS.targetMsMobile : A2_DEFAULTS.targetMsDesktop;
+
+  let m = mobile ? 128 * 1024 : 256 * 1024;
+  let t = 4;
+  const p = A2_DEFAULTS.p;
+
+  m = Math.max(A2_DEFAULTS.minMemKiB, Math.min(m, A2_DEFAULTS.maxMemKiB));
+  t = Math.max(A2_DEFAULTS.minT, Math.min(t, A2_DEFAULTS.maxT));
+
+  const probe = async (mKiB, tVal) => {
+    const start = performance.now();
+    await a.hash({
+      pass: passU8, salt: saltU8,
+      time: tVal, mem: mKiB, parallelism: p, hashLen: 16,
+      type: a.ArgonType.Argon2id, version: A2_DEFAULTS.version,
+    });
+    return performance.now() - start;
+  };
+
+  let ms;
+  while (true) {
+    try {
+      ms = await probe(m, t);
+      break;
+    } catch (e) {
+      if (m > A2_DEFAULTS.minMemKiB) {
+        m = Math.max(A2_DEFAULTS.minMemKiB, Math.floor(m / 2));
+        continue;
+      }
+      if (t > A2_DEFAULTS.minT) { t--; continue; }
+      ms = null;
+      break;
+    }
+  }
+
+  if (ms != null) {
+    for (let i = 0; i < 4; i++) {
+      if (ms > targetMs * 1.25) {
+        if (m > A2_DEFAULTS.minMemKiB) m = Math.max(A2_DEFAULTS.minMemKiB, Math.floor(m / 2));
+        else if (t > A2_DEFAULTS.minT) t--;
+        else break;
+      } else if (ms < targetMs * 0.7) {
+        if (m < A2_DEFAULTS.maxMemKiB) m = Math.min(A2_DEFAULTS.maxMemKiB, m * 2);
+        else if (t < A2_DEFAULTS.maxT) t++;
+        else break;
+      } else {
+        break;
+      }
+      try { ms = await probe(m, t); } catch { /* if OOM, we’ll reduce next loop */ }
+    }
+  }
+
+  return { t, m, p, version: A2_DEFAULTS.version };
+}
+
+export async function argon2idKey(passU8, saltU8, opts = {}) {
+  const a = (typeof window !== 'undefined') ? window.argon2 : globalThis.argon2;
+  if (!a?.hash || !a?.ArgonType) throw new Error("argon2-missing");
+  if (!(saltU8 instanceof Uint8Array) || saltU8.length < 16) {
+    throw new Error("argon2: salt must be Uint8Array ≥16 bytes");
+  }
+
+  let params;
+  if (opts && (opts.t || opts.m || opts.p)) {
+    params = {
+      t: Math.max(A2_DEFAULTS.minT, Math.min(opts.t ?? 4, A2_DEFAULTS.maxT)),
+      m: Math.max(A2_DEFAULTS.minMemKiB, Math.min(opts.m ?? (isLikelyMobile()?128*1024:256*1024), A2_DEFAULTS.maxMemKiB)),
+      p: A2_DEFAULTS.p,
+      version: A2_DEFAULTS.version,
+    };
+  } else {
+    if (!_argon2Tuned) _argon2Tuned = tuneArgon2(passU8, saltU8).catch(() => null);
+    params = await _argon2Tuned || {
+      t: 4,
+      m: isLikelyMobile() ? 128*1024 : 256*1024,
+      p: A2_DEFAULTS.p,
+      version: A2_DEFAULTS.version,
+    };
+  }
+
   const res = await a.hash({
     pass: passU8,
     salt: saltU8,
-    time: t,           // iterations
-    mem: m,            // KiB
-    parallelism: p,
+    time: params.t,
+    mem: params.m,          // KiB
+    parallelism: params.p,
     hashLen: 32,
-    type: a.ArgonType.Argon2id
+    type: a.ArgonType.Argon2id,
+    version: params.version,
   });
-  const raw = new Uint8Array(res.hash); // Uint8Array
-  return await subtle.importKey("raw", raw, { name:"AES-GCM" }, false, ["encrypt","decrypt"]);
+
+  const raw = new Uint8Array(res.hash); // 32 bytes
+  return await crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt","decrypt"]);
 }
-const ARGON2_CANON = { t:3, m: 64*1024, p:1 }; // 64 MiB, 3 passes, p=1
+
+export const ARGON2_CANON = { t: 4, m: 256*1024, p: 1, version: 0x13 };
+
 
 /* ---------- Encrypt / Decrypt bundle ---------- */
 
