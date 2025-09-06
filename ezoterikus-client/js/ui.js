@@ -3,7 +3,7 @@ import { x25519 } from "https://esm.sh/@noble/curves@1.6.0/ed25519";
 import * as ezo from './ezo.js';
 import * as relay from './relay.js';
 import { State, appendMessage, markRead, saveSettingsToArchive } from './state.js';
-import { esc } from './ui/sanitize.js';
+import { esc } from './ui/sanitize/sanitize.js';
 
 const $=(id)=>document.getElementById(id);
 
@@ -15,7 +15,7 @@ async function normalizeAvatar(dataUrl, size=96){
     if (!dataUrl) return null;
     const img = new Image();
     const loaded = new Promise((res, rej)=>{ img.onload=()=>res(); img.onerror=rej; });
-    img.src = dataUrl;
+    img.src = safeUrl(dataUrl);
     await loaded;
 
     const s = size|0;
@@ -106,7 +106,7 @@ export function hideModal(){ $("modal").classList.remove("show"); $("modalBox").
 export function showInfo(title, message){
   showModal(`
     <div class="dlg dlg-info">
-      <h2>${title||"Info"}</h2>
+      <h2>${esc(title||"Info")}</h2>
       <div class="dlg-msg">${message||""}</div>
       <div class="row right"><button id="ok" class="button primary">OK</button></div>
     </div>
@@ -115,8 +115,8 @@ export function showInfo(title, message){
 export function showWarn(title, message){
   showModal(`
     <div class="dlg dlg-warn">
-      <h2>${title||"Warning"}</h2>
-      <div class="dlg-msg">${message||""}</div>
+      <h2>${esc(title||"Warning")}</h2>
+      <div class="dlg-msg">${esc(message||"")}</div>
       <div class="row right"><button id="ok" class="button primary">OK</button></div>
     </div>
   `, (box)=>{ box.querySelector("#ok").onclick = hideModal; });
@@ -124,8 +124,8 @@ export function showWarn(title, message){
 export function showError(title, message){
   showModal(`
     <div class="dlg dlg-error">
-      <h2>${title||"Error"}</h2>
-      <div class="dlg-msg">${message||""}</div>
+      <h2>${esc(title||"Error")}</h2>
+      <div class="dlg-msg">${esc(message||"")}</div>
       <div class="row right"><button id="ok" class="button primary">OK</button></div>
     </div>
   `, (box)=>{ box.querySelector("#ok").onclick = hideModal; });
@@ -136,7 +136,7 @@ export async function confirmRisk(message){
     showModal(`
       <div class="dlg dlg-error">
         <h2>Are you sure?</h2>
-        <div class="dlg-msg">${message||""}</div>
+        <div class="dlg-msg">${esc(message||"")}</div>
         <div class="row right">
           <button id="no" class="button">Cancel</button>
           <button id="yes" class="button primary">Yes, proceed</button>
@@ -602,8 +602,8 @@ export function renderCenter(){
         const row = document.createElement("div");
         row.className = "msg-full";
         row.innerHTML = `
-          <b>Friend request from ${card.name || card.id}</b> <span class="pill">${card.id}</span>
-          <div class="muted">${card.bio || ""}</div>
+          <b>Friend request from ${esc(card.name || card.id)}</b> <span class="pill">${esc(card.id)}</span>
+          <div class="muted">${esc(card.bio || "")}</div>
           <div class="row" style="margin-top:6px;">
             <button class="button small" id="accF_${idx}">Accept</button>
             <button class="button small" id="accFSend_${idx}">Accept & Send my card</button>
@@ -668,8 +668,8 @@ export function renderCenter(){
         const row = document.createElement("div");
         row.className = "msg-full";
         row.innerHTML = `
-          <b>${pinv.group.name}</b> <span class="pill">${pinv.group.id}</span>
-          <div class="muted">Members: ${(pinv.group.members||[]).map(m=>m.name||m.id).join(", ")}</div>
+          <b>${esc(pinv.group.name)}</b> <span class="pill">${esc(pinv.group.id)}</span>
+          <div class="muted">Members: ${esc((pinv.group.members||[]).map(m=>m.name||m.id).join(", "))}</div>
           <div class="row" style="margin-top:6px;">
             <button class="button small" id="accG_${idx}">Accept</button>
             <button class="button small" id="decG_${idx}">Decline</button>
@@ -843,7 +843,7 @@ const fr = {
       const ids = [...State.friends.keys()];
       if (ids.length===0) return showWarn("No friends", "You have no friends to add.");
       showModal(`
-        <h2>Add members to ${g.name}</h2>
+        <h2>Add members to ${esc(g.name)}</h2>
         <div class="listbox" id="pickList"></div>
         <div class="row"><button id="ok" class="button primary">Add</button><button id="cancel" class="button ghost">Cancel</button></div>
       `,(box)=>{
@@ -879,7 +879,7 @@ const fr = {
     const info = document.createElement("div");
     info.innerHTML = `
       <div class="chat-section-title">Unknown sender</div>
-      <div class="msg">ID seen in message: <b>${esc(senderId)}</b></div>
+      <div class="msg-full">ID seen in message: <b>${esc(senderId)}</b></div>
       <div class="muted">To add them as a friend, import their card (.ezocard) from your You page.</div>
       <div class="row" style="margin-top:8px;">
         <button id="sendMyCard" class="button">Send my card</button>
@@ -929,9 +929,9 @@ const fr = {
   const pendingHandshake = (!fr.mutual || !fr.ack);
   info.innerHTML = `
     <div class="chat-section-title">Talking to</div>
-    <div class="msg"><b>${esc(fr.name)}</b> ${pendingHandshake?'<span class="pill">handshake pending</span>':''}</div>
-    <div class="msg">Inbox: <code>${esc(fr.inbox)}</code></div>
-    <div class="msg">Public key: <code style="word-break:break-all;">${esc(fr.pubB64)}</code></div>
+    <div class="msg-full"><b>${esc(fr.name)}</b> ${pendingHandshake?'<span class="pill">handshake pending</span>':''}</div>
+    <div class="msg-full">Inbox: <code>${esc(fr.inbox)}</code></div>
+    <div class="msg-full">Public key: <code style="word-break:break-all;">${esc(fr.pubB64)}</code></div>
     <div class="row" style="gap:8px;">
       <button id="deleteFriendBtn" class="button" style="flex:1;">Delete friend</button>
       <button id="inviteToGroupBtn" class="button" style="flex:1;">Invite to group</button>

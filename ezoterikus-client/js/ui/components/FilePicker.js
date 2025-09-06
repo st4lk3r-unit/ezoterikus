@@ -28,7 +28,7 @@ export function mountFilePicker(){
     const sum = await sha256(arr.buffer);
     const fileId = uuidv4();
     const chatId = State.CURRENT_CHAT;
-    const relPath = `chat/${chatId}/files/${fileId}/${f.name}`;
+    const relPath = `chat/${esc(chatId)}/files/${esc(fileId)}/${esc(f.name)}`;
     await ezo.writeFileToArchive(State.PROFILE.ctx, relPath, arr);
     const dataB64 = ezo.b64e(arr);
     const meta = { type:'file', fileId, name:f.name, size:f.size, mime: f.type||'application/octet-stream', relPath, sha256: sum, dataB64, from: State.PROFILE.name };

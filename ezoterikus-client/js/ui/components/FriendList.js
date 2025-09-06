@@ -1,5 +1,5 @@
 import { State } from '../../state.js';
-import { esc } from '../sanitize.js';
+import { esc } from '../sanitize/sanitize.js';
 
 export function enhanceFriendList(){
   const cont = document.getElementById('chatsMount');
