@@ -43,7 +43,6 @@
       if (!node.classList.contains('ezo-disabled')){
         node.classList.add('ezo-disabled');
         node.setAttribute('aria-disabled','true');
-        // Avoid tabbing into dead controls
         if (!node.hasAttribute('tabindex')) node.setAttribute('tabindex','-1');
         if ('disabled' in node) node.disabled = true;
         const input = node.querySelector?.('input,select,button');
@@ -55,19 +54,16 @@
       }
     }
   
-    // Intercept BEFORE app handlers (capture)
     function intercept(ev){
       const hit = safeClosest(ev.target, `.ezo-disabled, ${DISABLE_SEL}`);
       if (!hit) return;
   
-      // Ensure it *looks* disabled (even if class wasn’t applied yet)
       markDisabled(hit);
   
       ev.preventDefault();
       ev.stopImmediatePropagation();
       ev.stopPropagation();
   
-      // Optional: only toast on primary activation
       if (ev.type === 'click' && ev.button !== 0) return;
       toast(MSG);
     }
@@ -75,7 +71,6 @@
       document.addEventListener(t, intercept, true)
     );
   
-    // Scan applies the visual state up-front and for newly added DOM
     function scanOnce(){
       for (const sel of TARGETS) document.querySelectorAll(sel).forEach(markDisabled);
       document.querySelectorAll(EXTRA).forEach(markDisabled);
@@ -89,7 +84,6 @@
     document.addEventListener('DOMContentLoaded', scheduleScan);
     scheduleScan();
   
-    // (Optional) hover tip
     let tip;
     document.addEventListener('mouseover', (ev)=>{
       const el = safeClosest(ev.target, '.ezo-disabled');
