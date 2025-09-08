@@ -1,7 +1,6 @@
 import * as ezo from './ezo.js';
 window.ezo = ezo;
 import * as ui from './ui.js';
-import { enhanceUI } from './ui/index.js';
 import * as relay from './relay.js';
 import { State, setProfile, setSettings, loadChatsOnOpen } from './state.js';
 import { x25519 } from "https://esm.sh/@noble/curves@1.6.0/ed25519";
@@ -200,7 +199,7 @@ async function importArchiveFile(ev){
   }
 }
 
-window.addEventListener("load", ()=>{ showProfileManager(); ui.renderAll(); enhanceUI(); });
+window.addEventListener("load", ()=>{ showProfileManager(); ui.renderAll(); });
 window._EZO_STATE = State;
 
 window._dbgReloadFriends = async function(){
