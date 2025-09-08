@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <title>Ezoterikus – Spiker mark (bold gradient)</title>
+  <defs>
+    <!-- Gradient: teal→blue with subtle glow, visible on dark and light -->
+    <linearGradient id="dual" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06b6d4"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <style>.s{stroke-linecap:round;stroke-linejoin:round}</style>
+  </defs>
+
+  <!-- Outer ring, thicker -->
+  <g transform="translate(0,2)">
+    <circle cx="128" cy="126" r="90" fill="none" class="s"
+            stroke="url(#dual)" stroke-width="14" stroke-dasharray="500 46"
+            transform="rotate(-18 128 126)" opacity="0.95"/>
+  </g>
+
+  <!-- Spikes (N,E,S,W), thicker -->
+  <g fill="url(#dual)" opacity="0.85">
+    <path d="M128 16 c 8 16, 12 26, 12 36 c 0 5-4 8-12 8 c -8 0-12-3-12-8 c 0-10, 4-20, 12-36z"/>
+    <path d="M240 126 c-16 8-26 12-36 12 c-5 0-8-4-8-12 c 0-8, 3-12, 8-12 c 10 0,20 4,36 12z"/>
+    <path d="M128 236 c-8-16-12-26-12-36 c 0-5 4-8 12-8 c 8 0 12 3 12 8 c 0 10-4 20-12 36z"/>
+    <path d="M16 126 c 16-8 26-12 36-12 c 5 0 8 4 8 12 c 0 8-3 12-8 12 c -10 0-20-4-36-12z"/>
+  </g>
+
+  <!-- Vesica piscis (enlarged) -->
+  <g>
+    <circle cx="100" cy="120" r="44" fill="none" class="s" stroke="url(#dual)" stroke-width="10"/>
+    <circle cx="156" cy="120" r="44" fill="none" class="s" stroke="url(#dual)" stroke-width="10"/>
+    <path d="M128 76
+             a44 44 0 0 1 30 12
+             a44 44 0 0 1 0 64
+             a44 44 0 0 1-30 12
+             a44 44 0 0 1-30-12
+             a44 44 0 0 1 0-64
+             a44 44 0 0 1 30-12z"
+          fill="url(#dual)" opacity="0.95"/>
+    <circle cx="128" cy="120" r="7" fill="#f8fafc"/>
+  </g>
+
+  <!-- Esoteric ticks -->
+  <g stroke="url(#dual)" stroke-width="6" class="s" opacity="0.6" fill="none">
+    <path d="M128 28 l0 14" transform="rotate(10 128 128)"/>
+    <path d="M128 28 l0 14" transform="rotate(130 128 128)"/>
+    <path d="M128 28 l0 14" transform="rotate(250 128 128)"/>
+  </g>
+</svg>
