@@ -5,7 +5,7 @@
 <br />
 <div align="center">
   <a>
-    <img src="https://github.com/st4lk3r-unit/ezoterikus/assets/ezoterikus.svg" alt="Logo" width="400" height="400">
+    <img src="https://github.com/st4lk3r-unit/ezoterikus/blob/main/assets/ezoterikus.svg" alt="Logo" width="400" height="400">
   </a>
 
 <h3 align="center">ezoterikus</h3>
