@@ -1,0 +1,70 @@
+name: Deploy Pages from ./folder
+
+run-name: Deploy Pages — ${{ github.event.head_commit.message }}
+
+on:
+  workflow_run:
+    workflows: ["Bump version"]
+    types: [completed]
+    
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      SITE_DIR: ezoterikus-client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve deployment name (PR title → commit message → short SHA)
+        id: name
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+            const sha   = context.sha;
+
+            const pulls = await github.request(
+              'GET /repos/{owner}/{repo}/commits/{ref}/pulls',
+              { owner, repo, ref: sha, headers: { accept: 'application/vnd.github.groot-preview+json' } }
+            );
+
+            let name;
+            if (pulls.data && pulls.data.length > 0) {
+              name = pulls.data[0].title;
+            } else if (context.payload.head_commit && context.payload.head_commit.message) {
+              name = context.payload.head_commit.message.split('\n')[0].trim();
+            } else {
+              name = `deploy ${sha.substring(0,7)}`;
+            }
+
+            core.setOutput('deploy_name', name);
+
+      - name: Show chosen deployment name
+        run: |
+          echo "Deployment name: \"${{ steps.name.outputs.deploy_name }}\"" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.SITE_DIR }}
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}

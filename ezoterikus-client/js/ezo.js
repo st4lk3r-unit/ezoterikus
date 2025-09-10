@@ -1,4 +1,4 @@
-export const EZO_VERSION = "ezo-v3.0.5 dev";
+export const EZO_VERSION = "ezo-v3.0.5 alpha";
 
 //////////////////////
 // Encoding helpers //
