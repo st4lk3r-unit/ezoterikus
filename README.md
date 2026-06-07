@@ -7,7 +7,7 @@
   <a>
     <img src="https://github.com/st4lk3r-unit/ezoterikus/blob/main/assets/ezoterikus.svg" alt="Logo" width="400" height="400">
   </a>
-
+<p align="center"><sub><i>Knowledge should be free 🏴‍☠️</i></sub></p>
 <h3 align="center">ezoterikus</h3>
 
   <p align="center">
