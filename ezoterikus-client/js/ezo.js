@@ -1,4 +1,4 @@
-export const EZO_VERSION = "ezoterikus-v3.0.5-2_alpha";
+export const EZO_VERSION = "Update_README.md";
 
 //////////////////////
 // Encoding helpers //
